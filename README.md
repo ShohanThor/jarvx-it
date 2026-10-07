@@ -1,0 +1,86 @@
+# JarvX IT — Website & CMS
+
+A premium, 3D- and motion-rich marketing site for **JarvX IT** (Dhaka, Bangladesh), with a built-in admin panel so all content is editable without code.
+
+**Stack:** Next.js 14 (App Router) · TypeScript · Tailwind CSS · Three.js + React Three Fiber + Drei · GSAP + ScrollTrigger · Framer Motion · Lenis · Prisma (SQLite → Postgres) · Claude API (chat assistant)
+
+---
+
+## Quick start
+
+```bash
+npm install
+npm run setup     # generates placeholder images, creates the DB, seeds content + admin user
+npm run dev       # http://localhost:3000
+```
+
+`.env` is created for local dev with a random `AUTH_SECRET` and admin password. Copy `.env.example` for other environments.
+
+| URL | What |
+|---|---|
+| `/` | Website |
+| `/admin` | CMS (sign in with `ADMIN_EMAIL` / `ADMIN_PASSWORD` from `.env`; change the password under **Settings**) |
+
+Production: `npm run build && npm start`.
+
+---
+
+## What's inside
+
+### Pages
+Home · Services (+ detail per service) · Products (+ detail with pricing toggle, demo video, plans) · Portfolio (filterable, + case studies) · About · Careers (+ job detail with CV upload) · Blog (categories, search, featured, reading time, related) · Contact (multi-step inquiry, booking calendar, Google Map) · Privacy · Terms · 404.
+
+### 3D & motion
+| Feature | Where |
+|---|---|
+| Intro loader — JX strokes draw, gradient fills, mark flies into the navbar | `components/motion/IntroLoader.tsx` (once per session) |
+| Hero — JX logo as glossy glowing tubes, mouse parallax, particles, code symbols | `components/three/HeroScene.tsx` (lazy, loads after idle) |
+| Mesh-gradient background | `components/motion/MeshGradient.tsx` (pure CSS) |
+| Custom cursor (dot + trailing ring, labels like “Drag”/“View”) | `components/motion/CustomCursor.tsx` |
+| Magnetic buttons + shine sweep | `components/ui/Button.tsx` |
+| Scroll reveals (fade/slide/stagger/clip), word-by-word headings | `components/motion/Reveal.tsx`, `SplitWords.tsx` |
+| SEO-safe counters (real numbers in HTML, animate from 0 in view) | `components/motion/Counter.tsx` |
+| 3D tilt cards with glowing gradient border, per-service animated 3D icons | `components/ui/TiltCard.tsx`, `components/three/ServiceIcon*.tsx` |
+| Pinned horizontal showcase with 3D perspective cards | `components/sections/home/Showcase.tsx` |
+| Interactive 3D tech-logo sphere | `components/three/TechSphere*.tsx` |
+| Self-drawing glowing process timeline | `components/sections/home/ProcessTimeline.tsx` |
+| 3D testimonial ring carousel | `components/sections/home/Testimonials.tsx` |
+| Purple gradient page-transition wipe | `components/motion/PageTransition.tsx` |
+
+**Performance:** every WebGL scene is code-split and mounted only near the viewport, paused off-screen, and uses fewer particles/lower DPR on mobile. With `prefers-reduced-motion`, smooth scroll, cursor, transitions, the loader and 3D animation are disabled (static fallbacks are shown).
+
+### Interactive features
+- **Cost estimator** (BDT + USD) with lead capture — pricing model in `src/lib/estimator.ts`.
+- **AI chat assistant** — `src/app/api/chat/route.ts`. Uses Claude (`claude-opus-5-5` by default, override with `ANTHROPIC_MODEL`) with a system prompt built live from the CMS (services, products, plans, FAQ). Server-side refusal fallback is enabled. Without `ANTHROPIC_API_KEY` it falls back to a keyword FAQ bot.
+- **WhatsApp & Messenger** buttons — `NEXT_PUBLIC_WHATSAPP`, `NEXT_PUBLIC_MESSENGER_PAGE`.
+- **English / Bangla** toggle — UI strings in `src/lib/i18n/dictionaries.ts`; CMS records support translations via their `i18n` JSON field (e.g. `{"bn": {"title": "…"}}`), seeded for services, stats and FAQ.
+- **Meeting booking** — Sun–Thu slots in Dhaka time, double-booking prevented.
+
+### Admin panel (`/admin`)
+Secure login (bcrypt + signed HttpOnly JWT cookie, middleware guard, login rate limiting). Manage services, products & pricing plans, portfolio case studies, blog posts (Markdown), testimonials, client logos, stats, team, FAQ, job posts; review **job applications** (CV download) and **leads** with status tracking (new → contacted → qualified → proposal → won/lost) and notes; newsletter subscribers; CSV export. Image uploads are converted to WebP automatically.
+
+Content types are declared in **`src/lib/admin/resources.ts`** — add a field there (and in `prisma/schema.prisma`) to make it editable.
+
+### SEO
+Server-rendered pages · unique title/description per page · canonical + `og:url` · dynamic OG image per page (`/api/og`) · `sitemap.xml` from the DB · `robots.txt` · JSON-LD for Organization, SoftwareApplication/Product (+ offers), JobPosting, BlogPosting, FAQPage, Service and breadcrumbs · `next/image` (AVIF/WebP, lazy) · self-hosted fonts (Space Grotesk, Inter, Hind Siliguri).
+
+---
+
+## Before going live
+
+1. **Replace placeholder content.** Client names, testimonials, team members, stats, case-study numbers and all images are placeholders (`prisma/data.ts`, generated by `scripts/generate-images.ts`). Edit them in the admin.
+2. **Legal pages** (`/privacy`, `/terms`) are starting templates — have them reviewed.
+3. **Database:** switch `provider` in `prisma/schema.prisma` to `postgresql`, set `DATABASE_URL`, run `npx prisma db push && npm run db:seed`.
+4. **Storage:** uploaded images (`storage/media`) and CVs (`storage/cvs`, private) are stored on local disk. On serverless hosts (e.g. Vercel) move these to S3/R2 — see `src/app/api/admin/upload`, `src/app/api/apply`, `src/app/media/[name]`.
+5. **Env:** set `NEXT_PUBLIC_SITE_URL` (used for canonicals, sitemap, OG), a strong `AUTH_SECRET`, and `ANTHROPIC_API_KEY` for the AI assistant.
+6. **Rate limiting** is in-memory (single instance). Use Redis/Upstash if you run multiple instances.
+7. **Email notifications** for new leads/applications aren't wired up — add your provider (Resend, SES, …) in `src/app/api/leads/route.ts` and `src/app/api/apply/route.ts`.
+
+## Scripts
+| Command | |
+|---|---|
+| `npm run dev` / `build` / `start` | Next.js |
+| `npm run setup` | images + DB + seed |
+| `npm run db:seed` | re-seed content (upserts; admin user is only created if missing) |
+| `npm run images` | regenerate placeholder WebP images |
+| `npm run typecheck` / `lint` | checks |

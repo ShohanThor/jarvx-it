@@ -1,0 +1,201 @@
+// SQLite for zero-config local development.
+// For production switch provider to "postgresql" and point DATABASE_URL at your database.
+// List/JSON fields are stored as JSON strings so the schema is portable across providers.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String   @default("Admin")
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  shortDesc   String
+  description String
+  icon        String   @default("code") // key for the 3D / svg icon
+  features    String   @default("[]") // JSON string[]
+  process     String   @default("[]") // JSON {title, desc}[]
+  i18n        String   @default("{}") // JSON { bn: { title, shortDesc } }
+  order       Int      @default(0)
+  published   Boolean  @default(true)
+  updatedAt   DateTime @updatedAt
+}
+
+model Product {
+  id           String   @id @default(cuid())
+  slug         String   @unique
+  name         String
+  tagline      String
+  description  String
+  features     String   @default("[]") // JSON string[]
+  screenshots  String   @default("[]") // JSON string[] (image urls)
+  videoUrl     String   @default("")
+  monthlyPrice Int // USD
+  yearlyPrice  Int // USD per year
+  plans        String   @default("[]") // JSON {name, monthly, yearly, features[]}[]
+  category     String   @default("Business")
+  i18n         String   @default("{}")
+  order        Int      @default(0)
+  published    Boolean  @default(true)
+  updatedAt    DateTime @updatedAt
+}
+
+model Project {
+  id           String   @id @default(cuid())
+  slug         String   @unique
+  title        String
+  client       String
+  category     String // Ecommerce | Healthcare | SaaS | Mobile | Web
+  summary      String
+  problem      String
+  solution     String
+  tech         String   @default("[]") // JSON string[]
+  results      String   @default("[]") // JSON {label, value}[]
+  cover        String
+  gallery      String   @default("[]") // JSON string[]
+  serviceSlugs String   @default("[]") // JSON string[]
+  featured     Boolean  @default(false)
+  year         Int      @default(2025)
+  order        Int      @default(0)
+  published    Boolean  @default(true)
+  updatedAt    DateTime @updatedAt
+}
+
+model Post {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  excerpt     String
+  content     String // markdown
+  category    String
+  tags        String   @default("[]")
+  cover       String
+  author      String   @default("JarvX IT Team")
+  featured    Boolean  @default(false)
+  published   Boolean  @default(true)
+  publishedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Testimonial {
+  id          String  @id @default(cuid())
+  name        String
+  role        String
+  company     String
+  companyLogo String  @default("")
+  photo       String  @default("")
+  quote       String
+  rating      Int     @default(5)
+  order       Int     @default(0)
+  published   Boolean @default(true)
+}
+
+model ClientLogo {
+  id    String @id @default(cuid())
+  name  String
+  logo  String @default("")
+  url   String @default("")
+  order Int    @default(0)
+}
+
+model Stat {
+  id     String @id @default(cuid())
+  key    String @unique
+  label  String
+  value  Int
+  suffix String @default("+")
+  i18n   String @default("{}")
+  order  Int    @default(0)
+}
+
+model TeamMember {
+  id       String @id @default(cuid())
+  name     String
+  role     String
+  photo    String @default("")
+  linkedin String @default("")
+  order    Int    @default(0)
+}
+
+model Faq {
+  id       String  @id @default(cuid())
+  question String
+  answer   String
+  i18n     String  @default("{}")
+  order    Int     @default(0)
+  published Boolean @default(true)
+}
+
+model Job {
+  id               String        @id @default(cuid())
+  slug             String        @unique
+  title            String
+  department       String
+  location         String        @default("Uttara, Dhaka (Hybrid)")
+  type             String        @default("Full-time")
+  experience       String        @default("")
+  salary           String        @default("")
+  summary          String
+  description      String
+  responsibilities String        @default("[]")
+  requirements     String        @default("[]")
+  published        Boolean       @default(true)
+  postedAt         DateTime      @default(now())
+  validThrough     DateTime?
+  applications     Application[]
+}
+
+model Application {
+  id          String   @id @default(cuid())
+  jobId       String
+  job         Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  name        String
+  email       String
+  phone       String   @default("")
+  linkedin    String   @default("")
+  portfolio   String   @default("")
+  coverLetter String   @default("")
+  cvPath      String   @default("")
+  cvName      String   @default("")
+  status      String   @default("new") // new | reviewing | interview | offer | rejected | hired
+  notes       String   @default("")
+  createdAt   DateTime @default(now())
+}
+
+model Lead {
+  id        String    @id @default(cuid())
+  source    String // inquiry | estimator | booking | chat | contact
+  name      String
+  email     String
+  phone     String    @default("")
+  company   String    @default("")
+  service   String    @default("")
+  budget    String    @default("")
+  timeline  String    @default("")
+  message   String    @default("")
+  details   String    @default("{}") // JSON
+  meetingAt DateTime?
+  status    String    @default("new") // new | contacted | qualified | proposal | won | lost
+  notes     String    @default("")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Subscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}

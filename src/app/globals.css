@@ -1,0 +1,222 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* light */
+    --bg: 247 246 253;
+    --surface: 255 255 255;
+    --fg: 13 20 52;
+    --muted: 94 107 120;
+    --line: 13 43 126;
+    --line-a: 0.1;
+    --glass: 255 255 255;
+    --glass-a: 0.6;
+    color-scheme: light;
+  }
+  .dark {
+    --bg: 7 11 31;
+    --surface: 14 19 46;
+    --fg: 238 238 252;
+    --muted: 160 168 190;
+    --line: 167 139 250;
+    --line-a: 0.14;
+    --glass: 20 24 58;
+    --glass-a: 0.45;
+    color-scheme: dark;
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-bg text-fg font-sans antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  h1, h2, h3, h4 {
+    @apply font-display tracking-tight;
+  }
+  ::selection {
+    background: #7c3aed;
+    color: #fff;
+  }
+  :focus-visible {
+    outline: 2px solid #7c3aed;
+    outline-offset: 3px;
+    border-radius: 8px;
+  }
+  /* Custom cursor replaces the native one only on fine pointers */
+  html.has-custom-cursor,
+  html.has-custom-cursor a,
+  html.has-custom-cursor button {
+    cursor: none;
+  }
+  html.has-custom-cursor input,
+  html.has-custom-cursor textarea,
+  html.has-custom-cursor select {
+    cursor: text;
+  }
+}
+
+@layer components {
+  .glass {
+    background: rgb(var(--glass) / var(--glass-a));
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    border: 1px solid rgb(var(--line) / var(--line-a));
+  }
+  .text-gradient {
+    background: linear-gradient(90deg, #3b2fa0, #7c3aed 60%, #a78bfa);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .dark .text-gradient {
+    background: linear-gradient(90deg, #8b7cf6, #a78bfa 50%, #c4b5fd);
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+  /* Glowing gradient border using a masked pseudo-element */
+  .gradient-border {
+    position: relative;
+  }
+  .gradient-border::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(59, 47, 160, 0.6), rgba(124, 58, 237, 0.9), rgba(59, 47, 160, 0.2));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0.45;
+    transition: opacity 0.4s ease;
+  }
+  .gradient-border:hover::before,
+  .gradient-border.is-active::before {
+    opacity: 1;
+  }
+  .eyebrow {
+    @apply inline-flex items-center gap-2 rounded-full border border-purple/25 bg-purple/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-purple dark:text-purple-300;
+  }
+  .section {
+    @apply relative py-24 md:py-32;
+  }
+  .input {
+    @apply w-full rounded-2xl border border-line/15 bg-surface/70 px-4 py-3 text-sm text-fg placeholder:text-muted/70 outline-none transition focus:border-purple focus:ring-4 focus:ring-purple/15;
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-fg/80;
+  }
+  .prose-brand {
+    @apply text-[1.0625rem] leading-relaxed text-fg/85;
+  }
+  .prose-brand h2 {
+    @apply mt-10 mb-4 text-2xl font-bold text-fg;
+  }
+  .prose-brand h3 {
+    @apply mt-8 mb-3 text-xl font-semibold text-fg;
+  }
+  .prose-brand p {
+    @apply my-4;
+  }
+  .prose-brand ul,
+  .prose-brand ol {
+    @apply my-4 space-y-2 pl-6;
+  }
+  .prose-brand ul {
+    @apply list-disc;
+  }
+  .prose-brand ol {
+    @apply list-decimal;
+  }
+  .prose-brand li::marker {
+    color: #7c3aed;
+  }
+  .prose-brand a {
+    @apply font-medium text-purple underline underline-offset-4;
+  }
+  .prose-brand strong {
+    @apply font-semibold text-fg;
+  }
+  .prose-brand code {
+    @apply rounded-md bg-purple/10 px-1.5 py-0.5 text-[0.9em];
+  }
+}
+
+@layer utilities {
+  .bg-grid {
+    background-image: linear-gradient(rgb(var(--line) / 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--line) / 0.06) 1px, transparent 1px);
+    background-size: 56px 56px;
+  }
+  .mask-fade-x {
+    mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  }
+  .mask-fade-b {
+    mask-image: linear-gradient(180deg, #000 60%, transparent);
+  }
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+}
+
+/* Intro loader: hidden on repeat visits; the navbar mark appears once the intro mark lands on it */
+.intro-done #intro-loader {
+  display: none;
+}
+html:not(.intro-done) [data-nav-logo] {
+  opacity: 0;
+}
+
+/* Lenis */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* Animated mesh gradient blobs */
+.mesh-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+  will-change: transform;
+  animation: mesh-drift var(--d, 22s) ease-in-out infinite alternate;
+}
+@keyframes mesh-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(var(--x1, 10%), var(--y1, -8%), 0) scale(1.15);
+  }
+  100% {
+    transform: translate3d(var(--x2, -6%), var(--y2, 10%), 0) scale(0.95);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
