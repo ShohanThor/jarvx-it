@@ -1,7 +1,5 @@
 "use server";
 
-import fs from "node:fs/promises";
-import path from "node:path";
 import bcrypt from "bcryptjs";
 import { Prisma } from "@prisma/client";
 import { redirect } from "next/navigation";
@@ -9,7 +7,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { createSession, destroySession, requireAdmin } from "@/lib/auth";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
-import { CV_DIR } from "@/lib/storage";
+import { deleteCv } from "@/lib/storage";
 import { slugify } from "@/lib/utils";
 import { APPLICATION_STATUSES, LEAD_STATUSES, getResource, type Field } from "./resources";
 
@@ -157,7 +155,7 @@ export async function updateApplication(id: string, fd: FormData) {
 export async function deleteApplication(id: string) {
   await requireAdmin();
   const app = await db.application.delete({ where: { id } });
-  if (app.cvPath) await fs.rm(path.join(CV_DIR, path.basename(app.cvPath)), { force: true });
+  await deleteCv(app.cvPath);
   revalidatePath("/admin/applications");
 }
 

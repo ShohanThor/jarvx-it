@@ -5,13 +5,15 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
+    "vercel-build": "prisma generate && prisma db push --skip-generate && tsx prisma/seed.ts --if-empty && next build",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "db:local": "prisma dev --name jarvx --detach",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "images": "tsx scripts/generate-images.ts",
-    "setup": "npm run images && prisma db push && npm run db:seed"
+    "setup": "prisma db push && npm run db:seed"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -21,6 +23,7 @@
     "@prisma/client": "^6.16.0",
     "@react-three/drei": "^9.117.0",
     "@react-three/fiber": "^8.17.10",
+    "@vercel/blob": "^2.8.1",
     "bcryptjs": "^2.4.3",
     "clsx": "^2.1.1",
     "framer-motion": "^11.11.17",

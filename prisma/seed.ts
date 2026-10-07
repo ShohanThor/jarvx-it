@@ -18,6 +18,13 @@ async function main() {
     create: { email, passwordHash: await bcrypt.hash(password, 12) },
   });
 
+  // `--if-empty` (used by the Vercel build): only seed content into a fresh database,
+  // so redeploys never overwrite edits made in the admin panel.
+  if (process.argv.includes("--if-empty") && (await db.service.count()) > 0) {
+    console.log("Database already has content — skipping content seed.");
+    return;
+  }
+
   for (const [order, s] of services.entries()) {
     const { bn, features, process, ...rest } = s;
     const data = { ...rest, features: j(features), process: j(process), i18n: j({ bn }), order };

@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
-import { randomUUID } from "node:crypto";
-import fs from "node:fs/promises";
 import path from "node:path";
 import { db } from "@/lib/db";
-import { CV_DIR } from "@/lib/storage";
+import { saveCv } from "@/lib/storage";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { clean, isEmail } from "@/lib/utils";
 
@@ -45,9 +43,8 @@ export async function POST(req: Request) {
   const buf = Buffer.from(await cv.arrayBuffer());
   if (!looksLikeDocument(buf, ext)) return NextResponse.json({ error: "The file doesn't look like a valid document." }, { status: 400 });
 
-  await fs.mkdir(CV_DIR, { recursive: true });
-  const stored = `${randomUUID()}${ext}`;
-  await fs.writeFile(path.join(CV_DIR, stored), buf);
+  const contentType = Object.entries(ALLOWED).find(([, e]) => e === ext)?.[0] ?? "application/octet-stream";
+  const stored = await saveCv(buf, ext, contentType);
 
   await db.application.create({
     data: {

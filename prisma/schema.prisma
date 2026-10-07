@@ -1,13 +1,14 @@
-// SQLite for zero-config local development.
-// For production switch provider to "postgresql" and point DATABASE_URL at your database.
-// List/JSON fields are stored as JSON strings so the schema is portable across providers.
+// PostgreSQL everywhere:
+//  - Vercel: Prisma Postgres (or any Postgres) via DATABASE_URL
+//  - Local:  `npx prisma dev` starts a local Prisma Postgres server (see README)
+// List/JSON fields are stored as JSON strings so the schema stays portable.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

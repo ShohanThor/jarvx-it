@@ -1,16 +1,13 @@
 import { NextResponse } from "next/server";
-import { randomUUID } from "node:crypto";
-import fs from "node:fs/promises";
-import path from "node:path";
 import sharp from "sharp";
 import { getSession } from "@/lib/auth";
-import { MEDIA_DIR } from "@/lib/storage";
+import { saveImage } from "@/lib/storage";
 
 export const runtime = "nodejs";
 
 const MAX = 10 * 1024 * 1024;
 
-/** Admin image upload: re-encodes any raster image to WebP (max 2400px) and stores it in the media folder */
+/** Admin image upload: re-encodes any raster image to WebP (max 2400px) and stores it (Vercel Blob or local disk) */
 export async function POST(req: Request) {
   if (!(await getSession())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const fd = await req.formData().catch(() => null);
@@ -25,10 +22,7 @@ export async function POST(req: Request) {
       .resize({ width: 2400, height: 2400, fit: "inside", withoutEnlargement: true })
       .webp({ quality: 82 })
       .toBuffer();
-    await fs.mkdir(MEDIA_DIR, { recursive: true });
-    const name = `${randomUUID()}.webp`;
-    await fs.writeFile(path.join(MEDIA_DIR, name), out);
-    return NextResponse.json({ url: `/media/${name}` });
+    return NextResponse.json({ url: await saveImage(out) });
   } catch {
     return NextResponse.json({ error: "Could not process image" }, { status: 400 });
   }

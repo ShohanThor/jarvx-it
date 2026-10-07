@@ -1,8 +1,7 @@
-import fs from "node:fs/promises";
 import path from "node:path";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
-import { CV_DIR } from "@/lib/storage";
+import { readCv } from "@/lib/storage";
 
 export const runtime = "nodejs";
 
@@ -17,12 +16,12 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
   if (!(await getSession())) return new Response("Unauthorized", { status: 401 });
   const app = await db.application.findUnique({ where: { id: params.id } });
   if (!app?.cvPath) return new Response("Not found", { status: 404 });
-  const file = path.basename(app.cvPath);
+  const ext = path.extname(app.cvName || app.cvPath.split("?")[0]).toLowerCase();
   try {
-    const buf = await fs.readFile(path.join(CV_DIR, file));
-    const ext = path.extname(file);
+    const buf = await readCv(app.cvPath);
+    if (!buf) return new Response("Not found", { status: 404 });
     const downloadName = (app.cvName || `cv${ext}`).replace(/[^\w.\- ]/g, "_");
-    return new Response(buf, {
+    return new Response(Buffer.isBuffer(buf) ? new Uint8Array(buf) : buf, {
       headers: {
         "content-type": TYPES[ext] ?? "application/octet-stream",
         "content-disposition": `attachment; filename="${downloadName}"`,
